@@ -1,3 +1,6 @@
+const yup = require('yup');
+const Schemes = require('./scheme-model');
+
 /*
   If `scheme_id` does not exist in the database:
 
@@ -6,8 +9,18 @@
     "message": "scheme with scheme_id <actual id> not found"
   }
 */
-const checkSchemeId = (req, res, next) => {
-
+async function checkSchemeId(req, res, next) {
+  try {
+    const schemeWithId = await Schemes.findById(req.params.scheme_id);
+    if (!schemeWithId) {
+      next({ status: 404, message: `scheme with ${req.params.scheme_id} not found` });
+    } else {
+      req.existingScheme = schemeWithId;
+      next();
+    }
+  } catch (err) {
+    next(err);
+  }
 }
 
 /*
@@ -18,8 +31,23 @@ const checkSchemeId = (req, res, next) => {
     "message": "invalid scheme_name"
   }
 */
-const validateScheme = (req, res, next) => {
+const schemeSchema = yup.object({
+  scheme_name: yup.string()
+    .trim()
+    .min(1, 'invalid scheme_name')
+    .required('invalid scheme_name')
+});
 
+async function validateScheme(req, res, next) {
+  try {
+    const validatedBody = await schemeSchema.validate(req.body, {
+      stripUnknown: true
+    })
+    req.body = validatedBody;
+    next();
+  } catch (err) {
+    next({ status: 400, message: err.message });
+  }
 }
 
 /*
@@ -31,8 +59,26 @@ const validateScheme = (req, res, next) => {
     "message": "invalid step"
   }
 */
-const validateStep = (req, res, next) => {
+const stepSchema = yup.object({
+  instructions: yup.string()
+    .trim()
+    .min(1, 'invalid step')
+    .required('invalid step'),
+  step_number: yup.number()
+    .min(1, 'invalid step')
+    .required('invalid step')
+});
 
+async function validateStep(req, res, next) {
+  try {
+    const validatedBody = await stepSchema.validate(req.body, {
+      stripUnknown: true
+    })
+    req.body = validatedBody;
+    next();
+  } catch (err) {
+    next({ status: 400, message: err.message });
+  }
 }
 
 module.exports = {
