@@ -1,38 +1,61 @@
-/*
-  If `scheme_id` does not exist in the database:
+const yup = require('yup');
+const Schemes = require('./scheme-model');
 
-  status 404
-  {
-    "message": "scheme with scheme_id <actual id> not found"
+async function checkSchemeId(req, res, next) {
+  try {
+    const schemeWithId = await Schemes.findById(req.params.scheme_id);
+    if (!schemeWithId) {
+      next({ status: 404, message: `scheme with scheme_id ${req.params.scheme_id} not found` });
+    } else {
+      req.existingScheme = schemeWithId;
+      next();
+    }
+  } catch (err) {
+    next({ status: 404, message: `scheme with scheme_id ${req.params.scheme_id} not found` });
   }
-*/
-const checkSchemeId = (req, res, next) => {
-
 }
 
-/*
-  If `scheme_name` is missing, empty string or not a string:
+const schemeSchema = yup.object({
+  scheme_name: yup.string()
+    .trim()
+    .required('invalid scheme_name')
+});
 
-  status 400
-  {
-    "message": "invalid scheme_name"
+async function validateScheme(req, res, next) {
+  if (typeof req.body.scheme_name !== 'string') {
+    next({ status: 400, message: 'invalid scheme_name' });
   }
-*/
-const validateScheme = (req, res, next) => {
-
+  try {
+    const validatedBody = await schemeSchema.validate(req.body, {
+      stripUnknown: true
+    })
+    req.body = validatedBody;
+    next();
+  } catch (err) {
+    next({ status: 400, message: 'invalid scheme_name' });
+  }
 }
 
-/*
-  If `instructions` is missing, empty string or not a string, or
-  if `step_number` is not a number or is smaller than one:
+const stepSchema = yup.object({
+  instructions: yup.string()
+    .trim()
+    .min(1, 'invalid step')
+    .required('invalid step'),
+  step_number: yup.number()
+    .min(1, 'invalid step')
+    .required('invalid step')
+});
 
-  status 400
-  {
-    "message": "invalid step"
+async function validateStep(req, res, next) {
+  try {
+    const validatedBody = await stepSchema.validate(req.body, {
+      stripUnknown: true
+    })
+    req.body = validatedBody;
+    next();
+  } catch (err) {
+    next({ status: 400, message: 'invalid step' });
   }
-*/
-const validateStep = (req, res, next) => {
-
 }
 
 module.exports = {
