@@ -1,16 +1,15 @@
 const db = require('../../data/db-config');
 
+// SELECT
+//     sc.*,
+//     count(st.step_id) as number_of_steps
+// FROM schemes as sc
+// LEFT JOIN steps as st
+//     ON sc.scheme_id = st.scheme_id
+// GROUP BY sc.scheme_id
+// ORDER BY sc.scheme_id ASC;
+
 function find() {
-
-  // SELECT
-  //     sc.*,
-  //     count(st.step_id) as number_of_steps
-  // FROM schemes as sc
-  // LEFT JOIN steps as st
-  //     ON sc.scheme_id = st.scheme_id
-  // GROUP BY sc.scheme_id
-  // ORDER BY sc.scheme_id ASC;
-
   return db('schemes as sc')
     .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
     .select('sc.*')
@@ -19,17 +18,16 @@ function find() {
   ;
 }
 
+// SELECT
+//     sc.scheme_name,
+//     st.*
+// FROM schemes as sc
+// LEFT JOIN steps as st
+//     ON sc.scheme_id = st.scheme_id
+// WHERE sc.scheme_id = 1
+// ORDER BY st.step_number ASC;
+
 async function findById(scheme_id) {
-
-  // SELECT
-  //     sc.scheme_name,
-  //     st.*
-  // FROM schemes as sc
-  // LEFT JOIN steps as st
-  //     ON sc.scheme_id = st.scheme_id
-  // WHERE sc.scheme_id = 1
-  // ORDER BY st.step_number ASC;
-
   const rows = await db('schemes as sc')
     .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
     .where('sc.scheme_id', scheme_id)
@@ -56,19 +54,18 @@ async function findById(scheme_id) {
   return result;
 }
 
+// SELECT
+//     step_id,
+//     step_number,
+//     instructions,
+//     scheme_name
+// FROM schemes as sc
+// LEFT JOIN steps as st
+//     ON sc.scheme_id = st.scheme_id
+// WHERE sc.scheme_id = 1
+// ORDER BY step_number;
+
 async function findSteps(scheme_id) {
-
-  // SELECT
-  //     step_id,
-  //     step_number,
-  //     instructions,
-  //     scheme_name
-  // FROM schemes as sc
-  // LEFT JOIN steps as st
-  //     ON sc.scheme_id = st.scheme_id
-  // WHERE sc.scheme_id = 1
-  // ORDER BY step_number;
-
   const rows = await db('schemes as sc')
     .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
     .select('st.step_id', 'st.step_number', 'instructions', 'sc.scheme_name')
@@ -76,7 +73,8 @@ async function findSteps(scheme_id) {
     .orderBy('st.step_number')
   ;
 
-  if (!rows[0].step_id) return []
+  if (!rows[0].step_id) return [];
+
   return rows;
 }
 
